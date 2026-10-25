@@ -46,8 +46,7 @@ with right:
     charts.show(fig, 340, "Document length by category (words)")
 
 st.subheader("Results snapshot")
-nb, km = st.session_state.get("summary_nb"), st.session_state.get("summary_km")
-if nb is None or km is None:
+if not st.session_state.get("pipeline_ran"):
     st.info("Run the pipeline to fill in the headline results (takes a few seconds).")
     if st.button("Run full pipeline", type="primary", icon=":material/play_arrow:"):
         with st.status("Running pipeline...", expanded=False):
@@ -55,12 +54,14 @@ if nb is None or km is None:
             state.clustering()
         st.rerun()
 else:
+    # Cached on the current corpus and settings, so these always match what the other pages show.
+    nb, kr = state.classification().scores, state.clustering()
     rec = state.recommendation_quality(5)
     m = st.columns(5)
     m[0].metric("NB accuracy", f"{nb['accuracy']:.3f}", border=True)
     m[1].metric("NB macro F1", f"{nb['macro_f1']:.3f}", border=True)
-    m[2].metric("K-Means purity", f"{km['purity']:.3f}", border=True)
-    m[3].metric("K-Means Rand Index", f"{km['rand_index']:.3f}", border=True)
+    m[2].metric("K-Means purity", f"{kr.purity:.3f}", border=True)
+    m[3].metric("K-Means Rand Index", f"{kr.rand['rand_index']:.3f}", border=True)
     m[4].metric("Recommender P@5", f"{rec['precision_at_k']:.3f}", border=True,
                 help="Share of top-5 recommendations from the same category as the query")
 

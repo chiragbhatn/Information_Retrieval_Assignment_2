@@ -6,6 +6,9 @@ ok  test_rand_index_equals_bruteforce
 ok  test_classification_metrics
 ok  test_naive_bayes_textbook_example
 ok  test_stratified_split_keeps_groups_together
+ok  test_stratified_split_keeps_single_document_class_in_training
+ok  test_read_table_formats
+ok  test_empty_vocabulary_is_reported
 ok  test_kmeans_separates_obvious_clusters
 ok  test_preprocessing
-10 tests passed
+13 tests passed

@@ -15,6 +15,15 @@ model = fs.model
 meta = state.corpus().meta
 cmap = charts.color_map(fs.labels)
 
+
+def summary_of(doc_id: str) -> str:
+    """The article's summary metadata, or '' when the corpus has none (or it is blank)."""
+    if "summary" not in meta.columns:
+        return ""
+    value = meta.at[doc_id, "summary"]
+    return "" if pd.isna(value) else str(value).strip()
+
+
 c1, c2, c3 = st.columns([2, 1, 1])
 mode = c1.radio("Query", ["Pick an article", "Type or paste text"], horizontal=True)
 k = c2.slider("Top-K", 1, 20, 5)
@@ -39,8 +48,7 @@ if mode == "Pick an article":
     with st.container(border=True):
         st.markdown(f"**{fs.titles[query_idx]}**  \n`{fs.doc_ids[query_idx]}` · category **{fs.labels[query_idx]}** "
                     f"· cluster **{q_cluster}**")
-        summary = meta.loc[fs.doc_ids[query_idx]].get("summary", "") if "summary" in meta.columns else ""
-        preview = str(summary) if summary else fs.bodies[query_idx]
+        preview = summary_of(fs.doc_ids[query_idx]) or fs.bodies[query_idx]
         st.caption(preview[:500].lstrip("- ").replace(" - ", " · "))
         st.caption("Top terms: " + ", ".join(t for t, _ in model.top_terms_for_doc(query_idx, 10)))
 else:
@@ -88,7 +96,7 @@ if len(rec_df):
         with st.expander(f"{r['rank']}. {r['title']}  ·  {r['category']}  ·  score {r['score']:.3f}"):
             m = meta.loc[r["doc_id"]]
             st.markdown(f"`{r['doc_id']}` · cluster {r['cluster']} · shared terms: *{r['shared terms']}*")
-            st.write(str(m.get("summary", "")) or fs.bodies[fs.doc_ids.index(r["doc_id"])][:600])
+            st.write(summary_of(r["doc_id"]) or fs.bodies[fs.doc_ids.index(r["doc_id"])][:600])
 
 st.divider()
 q = state.recommendation_quality(k, weight)

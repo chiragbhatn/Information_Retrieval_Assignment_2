@@ -51,6 +51,8 @@ def precision_at_k(X: np.ndarray, labels: list[str], k: int, clusters: np.ndarra
     Also reports how often the top-k list contains a (near-)duplicate of the query,
     which shows how duplicates crowd out genuinely related documents.
     """
+    if len(labels) < 2 or k < 1:
+        return {"k": 0, "precision_at_k": 0.0, "queries_with_duplicate_in_top_k": 0.0}
     sims = (X @ X.T).astype(np.float64)
     np.fill_diagonal(sims, -np.inf)
     scores = sims

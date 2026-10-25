@@ -89,6 +89,39 @@ def test_stratified_split_keeps_groups_together():
     assert (0 in train) == (1 in train)
 
 
+def test_stratified_split_keeps_single_document_class_in_training():
+    labels = ["a"] * 10 + ["b"]
+    train, test = stratified_split(labels, 0.3, seed=0)
+    assert 10 in train and 10 not in test
+    assert any(labels[i] == "a" for i in test) and any(labels[i] == "a" for i in train)
+
+
+def test_read_table_formats():
+    import io
+    import json
+    from core.data_loader import read_table
+    rows = [{"id": 1, "text": "a b"}, {"id": 2, "text": "c d"}]
+    pretty = json.dumps({"documents": rows}, indent=2).encode()
+    assert len(read_table(io.BytesIO(pretty), "x.json")) == 2
+    lines = "\n".join(json.dumps(r) for r in rows).encode()
+    assert len(read_table(io.BytesIO(lines), "x.json")) == 2
+    assert len(read_table(io.BytesIO(lines), "x.jsonl")) == 2
+
+
+def test_empty_vocabulary_is_reported():
+    import pandas as pd
+    from core.data_loader import Corpus
+    from core.pipeline import DedupConfig, build_features
+    c = Corpus(pd.Series(["alpha", "beta"], index=["d1", "d2"]),
+               pd.DataFrame({"category": ["x", "y"]}, index=["d1", "d2"]))
+    try:
+        build_features(c, PreprocessConfig(), TfidfConfig(min_df=2), DedupConfig())
+    except ValueError as exc:
+        assert "No terms are left" in str(exc)
+    else:
+        raise AssertionError("expected ValueError")
+
+
 def test_kmeans_separates_obvious_clusters():
     rng = np.random.default_rng(0)
     X = np.vstack([rng.normal(0, 0.1, (30, 2)), rng.normal(5, 0.1, (30, 2))]).astype(np.float32)

@@ -102,9 +102,13 @@ def read_table(uploaded, filename: str) -> pd.DataFrame:
     if lower.endswith(".csv"):
         return pd.read_csv(io.BytesIO(raw), encoding="utf-8", encoding_errors="replace")
     text = raw.decode("utf-8", errors="replace").strip()
-    if lower.endswith(".jsonl") or (text and text[0] == "{" and "\n{" in text):
+    if lower.endswith(".jsonl"):
         return pd.DataFrame([json.loads(line) for line in text.splitlines() if line.strip()])
-    data = json.loads(text)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        # Not a single JSON value: treat it as JSON lines (one object per line).
+        return pd.DataFrame([json.loads(line) for line in text.splitlines() if line.strip()])
     if isinstance(data, dict):  # {"documents": [...]} style
         data = next((v for v in data.values() if isinstance(v, list)), [data])
     return pd.DataFrame(data)

@@ -46,9 +46,13 @@ with r:
 
 st.divider()
 st.subheader("Experiments")
-src = "saved results (scripts/run_experiments.py)" if RESULTS.exists() else "none saved yet"
+# Saved files come from scripts/run_experiments.py on the full bundled corpus with default settings,
+# so they are only shown when that corpus is active.
+use_saved = RESULTS.exists() and state.is_full_bundled_corpus()
 st.caption(f"Each experiment can be run live on the active corpus ({len(state.corpus()):,} documents). "
-           f"Saved results folder: {src}. Live results replace saved ones for this session.")
+           + ("Until then, the saved full-corpus results (default settings) are shown."
+              if use_saved else "Saved results apply only to the full bundled corpus, so they are hidden here."))
+signature = state.results_signature()
 
 
 def experiment(key: str, title: str, runner, help_text: str):
@@ -58,12 +62,14 @@ def experiment(key: str, title: str, runner, help_text: str):
     c1, c2 = st.columns([1, 4])
     if c1.button("Run live", key=f"run_{key}", icon=":material/play_arrow:"):
         bar = st.progress(0.0, text="Starting...")
-        st.session_state[f"exp_{key}"] = runner(lambda frac, name: bar.progress(frac, text=name))
+        st.session_state[f"exp_{key}"] = (signature, runner(lambda frac, name: bar.progress(frac, text=name)))
         bar.empty()
-    df = st.session_state.get(f"exp_{key}")
-    origin = "live run"
-    if df is None and (RESULTS / f"{key}.csv").exists():
-        df, origin = pd.read_csv(RESULTS / f"{key}.csv"), "saved file"
+    saved_live = st.session_state.get(f"exp_{key}")
+    # A live run made with a different corpus or settings is no longer valid.
+    df = saved_live[1] if saved_live and saved_live[0] == signature else None
+    origin = "live run (current corpus and settings)"
+    if df is None and use_saved and (RESULTS / f"{key}.csv").exists():
+        df, origin = pd.read_csv(RESULTS / f"{key}.csv"), "saved full-corpus run (default settings)"
     if df is None:
         c2.info("Not run yet.")
         return None

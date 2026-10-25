@@ -103,6 +103,10 @@ def build_features(corpus: Corpus, prep: PreprocessConfig, tfidf_cfg: TfidfConfi
     t2 = time.perf_counter()
     model = TfidfModel(tfidf_cfg).fit(tokens)
     timings["tfidf"] = time.perf_counter() - t2
+    if not model.vocab:
+        raise ValueError(f"No terms are left after preprocessing and the document-frequency filter "
+                         f"({len(tokens)} documents, min_df={tfidf_cfg.min_df}, "
+                         f"max_df={tfidf_cfg.max_df_ratio}). Lower min_df or load a larger corpus.")
 
     # 3. Near duplicates on TF-IDF cosine similarity
     t3 = time.perf_counter()

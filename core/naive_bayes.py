@@ -35,7 +35,10 @@ def stratified_split(labels: list[str], test_size: float = 0.2, seed: int = 42,
     for label in sorted(by_class):
         grp_ids = by_class[label]
         rng.shuffle(grp_ids)
-        n_test = max(1, round(len(grp_ids) * test_size))
+        # At least one test and one training group per class; a class with a
+        # single group stays in training so the model can still learn it.
+        n = len(grp_ids)
+        n_test = 0 if n == 1 else min(max(1, round(n * test_size)), n - 1)
         for i, g in enumerate(grp_ids):
             (test if i < n_test else train).extend(seen_groups[g])
     return sorted(train), sorted(test)

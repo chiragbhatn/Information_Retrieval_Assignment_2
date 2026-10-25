@@ -52,6 +52,8 @@ def corpus() -> Corpus:
 def set_corpus(c: Corpus, source: str) -> None:
     st.session_state.corpus = c
     st.session_state.corpus_source = source
+    # Results shown for the previous corpus no longer apply.
+    st.session_state.pipeline_ran = False
 
 
 def cfg(name: str):
@@ -72,11 +74,24 @@ def _features(key: str, _corpus: Corpus, prep: PreprocessConfig, tfidf: TfidfCon
 
 def features() -> FeatureSet:
     c = corpus()
-    return _features(c.fingerprint, c, cfg("prep"), cfg("tfidf"), cfg("dedup"))
+    try:
+        return _features(c.fingerprint, c, cfg("prep"), cfg("tfidf"), cfg("dedup"))
+    except ValueError as exc:  # e.g. nothing left after the vocabulary filter
+        st.error(f"Cannot build features for this corpus: {exc}")
+        st.stop()
 
 
 def _feature_key() -> tuple:
     return (corpus().fingerprint, cfg("prep"), cfg("tfidf"), cfg("dedup"))
+
+
+def results_signature() -> tuple:
+    """Everything a result depends on; used to drop results that no longer match."""
+    return (_feature_key(), cfg("nb"), cfg("km"))
+
+
+def is_full_bundled_corpus() -> bool:
+    return corpus().fingerprint == bundled_corpus().fingerprint
 
 
 @st.cache_resource(show_spinner="Training and testing Naive Bayes...", max_entries=8)
@@ -86,7 +101,7 @@ def _classification(key: tuple, nb: NBConfig, _fs: FeatureSet) -> Classification
 
 def classification() -> ClassificationResult:
     res = _classification(_feature_key(), cfg("nb"), features())
-    st.session_state.summary_nb = res.scores
+    st.session_state.pipeline_ran = True
     return res
 
 
@@ -96,8 +111,13 @@ def _clustering(key: tuple, km: KMConfig, _fs: FeatureSet) -> ClusteringResult:
 
 
 def clustering() -> ClusteringResult:
-    res = _clustering(_feature_key(), cfg("km"), features())
-    st.session_state.summary_km = {"purity": res.purity, "rand_index": res.rand["rand_index"]}
+    fs = features()
+    km = cfg("km")
+    if km.k > len(fs):
+        st.error(f"k = {km.k} is larger than the number of documents ({len(fs)}). Choose a smaller k.")
+        st.stop()
+    res = _clustering(_feature_key(), km, fs)
+    st.session_state.pipeline_ran = True
     return res
 
 

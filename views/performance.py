@@ -112,7 +112,7 @@ with t2:
 
 with t3:
     df = experiment("exp3_k_sweep", "Choosing k", lambda p: ex.k_sweep(fs, progress=p),
-                    "K-Means for k = 2..10 (k-means++, 3 restarts). SSE always falls as k grows; "
+                    "K-Means for k = 2..10 (k-means++, 10 restarts). SSE always falls as k grows; "
                     "purity and Rand Index show where clusters match the real categories.")
     if df is not None:
         l, r = st.columns(2)
@@ -124,7 +124,7 @@ with t3:
 with t4:
     df = experiment("exp4_init_comparison", "Random vs k-means++ initialisation",
                     lambda p: ex.init_comparison(fs, k=state.cfg("km").k),
-                    "Five seeds each, one run per seed. Shows how sensitive K-Means is to the starting centroids.")
+                    "Ten seeds each, one run per seed. Shows how sensitive K-Means is to the starting centroids.")
     if df is not None:
         l, r = st.columns(2)
         with l:

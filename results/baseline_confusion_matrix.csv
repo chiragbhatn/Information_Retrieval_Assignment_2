@@ -1,0 +1,6 @@
+actual,pred: business,pred: entertainment,pred: politics,pred: sport,pred: tech
+actual: business,96,0,3,0,1
+actual: entertainment,1,70,1,0,1
+actual: politics,1,1,76,0,1
+actual: sport,0,0,0,98,0
+actual: tech,1,0,0,1,65

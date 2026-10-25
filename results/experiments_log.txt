@@ -1,0 +1,130 @@
+Corpus: BBC News | {'documents': 2224, 'categories': 5, 'raw_text_mb': np.float64(4.96), 'avg_words': np.float64(375.1), 'median_words': 323, 'min_words': 83, 'max_words': 4374, 'total_words': 834181}
+
+== baseline_classification_report ==
+        class  precision  recall     f1  support
+     business     0.9697  0.9600 0.9648      100
+entertainment     0.9859  0.9589 0.9722       73
+     politics     0.9500  0.9620 0.9560       79
+        sport     0.9899  1.0000 0.9949       98
+         tech     0.9559  0.9701 0.9630       67
+    macro avg     0.9703  0.9702 0.9702      417
+ weighted avg     0.9713  0.9712 0.9712      417
+
+== baseline_confusion_matrix ==
+               actual  pred: business  pred: entertainment  pred: politics  pred: sport  pred: tech
+     actual: business              96                    0               3            0           1
+actual: entertainment               1                   70               1            0           1
+     actual: politics               1                    1              76            0           1
+        actual: sport               0                    0               0           98           0
+         actual: tech               1                    0               0            1          65
+
+== baseline_contingency ==
+  cluster  business  entertainment  politics  sport  tech
+cluster 0         7              9         1      0   309
+cluster 1        20              8       388     24     7
+cluster 2         0              0         1    463     2
+cluster 3         1            346         1      2    13
+cluster 4       472              3         3      1     5
+
+Running preprocessing ablation...
+   - A. Minimal (lowercase + split only)
+   - B. No lowercasing (cleaned, case kept)
+   - C. Cleaned + lowercase
+   - D. + stop-word removal
+   - E. + Porter stemming
+   - F. + WordNet lemmatization
+   - G. + lemmatization + bigrams
+   - H. + lemmatization + news stop-words
+
+== exp1_preprocessing_ablation ==
+                                config  full_vocabulary  vocab_after_df_filter  features_used  avg_tokens_per_doc  nb_accuracy  nb_macro_f1  test_docs_with_copy_in_train  km_purity  km_rand_index    km_sse  rec_precision_at_5  rec_dup_in_top_5  seconds
+   A. Minimal (lowercase + split only)            29835                  17132           5000               456.8       0.9760       0.9744                             0     0.9626         0.9715 1935.7962              0.9318            0.0144     2.71
+B. No lowercasing (cleaned, case kept)            32026                  18311           5000               369.3       0.9736       0.9720                             0     0.9650         0.9732 1941.6720              0.9324            0.0144     3.17
+                C. Cleaned + lowercase            27875                  16341           5000               369.3       0.9736       0.9717                             0     0.9636         0.9721 1940.1659              0.9309            0.0144     2.93
+                D. + stop-word removal            27723                  16198           5000               213.2       0.9688       0.9671                             0     0.9616         0.9710 1956.6573              0.9326            0.0144     3.12
+                  E. + Porter stemming            18967                  11038           5000               213.2       0.9712       0.9709                             0     0.9660         0.9738 1939.9517              0.9327            0.0163     3.42
+            F. + WordNet lemmatization            21025                  12137           5000               213.2       0.9712       0.9702                             0     0.9482         0.9603 1943.7367              0.9300            0.0163     2.99
+          G. + lemmatization + bigrams           322388                  63504           5000               425.4       0.9664       0.9643                             0     0.9660         0.9743 1942.4411              0.9391            0.0144     3.63
+  H. + lemmatization + news stop-words            21015                  12124           5000               195.3       0.9688       0.9676                             0     0.9501         0.9620 1948.4270              0.9308            0.0163     2.90
+
+Running duplicate impact...
+   - 1. Keep duplicates, random split
+   - 2. Keep duplicates, duplicate-aware split
+   - 3. Remove exact duplicates
+   - 4. Remove exact + near (cos >= 0.9)
+
+== exp2_duplicate_impact ==
+                                 scenario  documents  removed_exact  removed_near  near_dup_pairs_left  nb_accuracy  nb_macro_f1  test_docs_with_copy_in_train  km_purity  km_rand_index    km_sse  rec_precision_at_5  rec_dup_in_top_5
+         1. Keep duplicates, random split       2224              0             0                  163       0.9640       0.9630                            38     0.9640         0.9730 2071.0445              0.9337            0.1394
+2. Keep duplicates, duplicate-aware split       2224              0             0                  163       0.9693       0.9687                             0     0.9640         0.9730 2071.0445              0.9337            0.1394
+               3. Remove exact duplicates       2086            138             0                   24       0.9712       0.9702                             0     0.9482         0.9603 1943.7367              0.9300            0.0163
+      4. Remove exact + near (cos >= 0.9)       2062            138            24                    0       0.9684       0.9684                             0     0.9665         0.9746 1921.4939              0.9289            0.0000
+
+== exp3_k_sweep ==
+ k       sse  purity  rand_index  iterations
+ 2 1984.3202  0.4736      0.6660           7
+ 3 1969.8555  0.6472      0.8099          12
+ 4 1956.6896  0.8006      0.8886          13
+ 5 1943.7367  0.9482      0.9603           6
+ 6 1935.7524  0.9645      0.9507          14
+ 7 1928.4820  0.9645      0.9289          17
+ 8 1921.6128  0.9636      0.9239          18
+ 9 1915.4496  0.9108      0.8843          15
+10 1910.6312  0.9640      0.9049          18
+
+== exp4_init_comparison ==
+     init  seed       sse  iterations  purity  rand_index
+   random     0 1950.6203          12  0.7752      0.8443
+   random     1 1943.3974           7  0.9607      0.9706
+   random     2 1948.6137          18  0.8015      0.8667
+   random     3 1949.9239          18  0.7464      0.8680
+   random     4 1949.7396          11  0.7776      0.8802
+   random     5 1950.8996          12  0.7953      0.8643
+   random     6 1948.7681          18  0.7924      0.8849
+   random     7 1951.1934          13  0.7987      0.8785
+   random     8 1948.7796           8  0.8030      0.8721
+   random     9 1944.4263          19  0.9257      0.9442
+k-means++     0 1950.6344          11  0.7881      0.8642
+k-means++     1 1943.6133          11  0.9554      0.9656
+k-means++     2 1949.9404          17  0.7675      0.8762
+k-means++     3 1943.3788          19  0.9674      0.9752
+k-means++     4 1950.7063          12  0.7742      0.8764
+k-means++     5 1943.3942          11  0.9650      0.9732
+k-means++     6 1949.2092          15  0.7905      0.8678
+k-means++     7 1949.2611          12  0.8135      0.8833
+k-means++     8 1951.7580          12  0.7560      0.8753
+k-means++     9 1950.2479          13  0.7833      0.8673
+
+== exp5_recommender_eval ==
+                     method  k  precision_at_k  queries_with_duplicate_in_top_k
+              content-based  1          0.9535                           0.0163
+              content-based  3          0.9401                           0.0163
+              content-based  5          0.9300                           0.0163
+              content-based 10          0.9188                           0.0163
+hybrid (cluster weight 0.2)  1          0.9722                           0.0163
+hybrid (cluster weight 0.2)  3          0.9632                           0.0163
+hybrid (cluster weight 0.2)  5          0.9611                           0.0163
+hybrid (cluster weight 0.2) 10          0.9578                           0.0163
+hybrid (cluster weight 0.5)  1          0.9703                           0.0163
+hybrid (cluster weight 0.5)  3          0.9623                           0.0163
+hybrid (cluster weight 0.5)  5          0.9605                           0.0163
+hybrid (cluster weight 0.5) 10          0.9575                           0.0163
+
+== exp6_naive_bayes_variants ==
+features  alpha  accuracy  macro_f1
+  counts   0.01    0.9736    0.9724
+  counts   0.10    0.9736    0.9724
+  counts   0.50    0.9736    0.9724
+  counts   1.00    0.9712    0.9702
+  counts   2.00    0.9712    0.9699
+   tfidf   0.01    0.9736    0.9728
+   tfidf   0.10    0.9736    0.9724
+   tfidf   0.50    0.9712    0.9701
+   tfidf   1.00    0.9688    0.9679
+   tfidf   2.00    0.9664    0.9650
+
+All experiments finished in 63.5s -> C:\Users\chira\PycharmProjects\PythonProject\ir assignment 2\results
+
+real	1m4.307s
+user	0m0.000s
+sys	0m0.015s

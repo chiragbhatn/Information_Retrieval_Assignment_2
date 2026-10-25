@@ -1,0 +1,80 @@
+{
+  "documents_in": 2224,
+  "documents_used": 2086,
+  "removed": {
+    "exact": 138,
+    "near": 0
+  },
+  "tfidf": {
+    "documents": 2086,
+    "full_vocabulary": 21025,
+    "after_df_filter": 12137,
+    "feature_vocabulary": 5000,
+    "non_zero_weights": 260668,
+    "sparsity_pct": 97.5,
+    "empty_documents": 0
+  },
+  "naive_bayes": {
+    "accuracy": 0.9712230215827338,
+    "macro_precision": 0.9702787610989765,
+    "macro_recall": 0.9702157359552162,
+    "macro_f1": 0.9701816012847031,
+    "weighted_f1": 0.9712175142703228
+  },
+  "kmeans": {
+    "purity": 0.9482262703739214,
+    "rand_index": 0.9602746182727835,
+    "sse": 1943.7366886295854,
+    "iterations": 6,
+    "stop_reason": "no document changed cluster (iteration 6)",
+    "cluster_to_label": {
+      "1": "politics",
+      "4": "business",
+      "3": "entertainment",
+      "2": "sport",
+      "0": "tech"
+    }
+  },
+  "configs": {
+    "preprocess": {
+      "include_title": true,
+      "fix_encoding": true,
+      "strip_markup": true,
+      "lowercase": true,
+      "remove_numbers": true,
+      "remove_punctuation": true,
+      "remove_stopwords": true,
+      "news_stopwords": false,
+      "custom_stopwords": [],
+      "normalizer": "lemmatize",
+      "min_token_len": 2,
+      "ngram_max": 1
+    },
+    "tfidf": {
+      "min_df": 2,
+      "max_df_ratio": 0.9,
+      "max_features": 5000,
+      "sublinear_tf": true
+    },
+    "dedup": {
+      "remove_exact": true,
+      "remove_near": false,
+      "near_threshold": 0.9
+    },
+    "naive_bayes": {
+      "test_size": 0.2,
+      "seed": 42,
+      "alpha": 1.0,
+      "features": "counts",
+      "group_duplicates": true
+    },
+    "kmeans": {
+      "k": 5,
+      "init": "k-means++",
+      "max_iter": 100,
+      "tol": 0.0001,
+      "seed": 42,
+      "n_init": 10
+    }
+  }
+}

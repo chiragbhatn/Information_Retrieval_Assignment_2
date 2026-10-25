@@ -91,7 +91,7 @@ def duplicate_impact(corpus: Corpus, prep: PreprocessConfig = PreprocessConfig()
     return pd.DataFrame(rows)
 
 
-def k_sweep(fs: FeatureSet, ks=range(2, 11), init: str = "k-means++", seed: int = 42, n_init: int = 3,
+def k_sweep(fs: FeatureSet, ks=range(2, 11), init: str = "k-means++", seed: int = 42, n_init: int = 10,
             progress=None) -> pd.DataFrame:
     rows = []
     ks = list(ks)
@@ -105,7 +105,7 @@ def k_sweep(fs: FeatureSet, ks=range(2, 11), init: str = "k-means++", seed: int 
     return pd.DataFrame(rows)
 
 
-def init_comparison(fs: FeatureSet, k: int = 5, seeds=range(5)) -> pd.DataFrame:
+def init_comparison(fs: FeatureSet, k: int = 5, seeds=range(10)) -> pd.DataFrame:
     rows = []
     for init in ("random", "k-means++"):
         for s in seeds:

@@ -1,0 +1,11 @@
+ok  test_inverted_index
+ok  test_tfidf_matches_hand_calculation
+ok  test_cosine
+ok  test_purity_and_rand_index_textbook_example
+ok  test_rand_index_equals_bruteforce
+ok  test_classification_metrics
+ok  test_naive_bayes_textbook_example
+ok  test_stratified_split_keeps_groups_together
+ok  test_kmeans_separates_obvious_clusters
+ok  test_preprocessing
+10 tests passed

@@ -162,7 +162,7 @@ with tab_km:
         max_iter = c3.number_input("Max iterations", 1, 500, km_cfg.max_iter)
         tol = c4.select_slider("Tolerance", [1e-6, 1e-5, 1e-4, 1e-3, 1e-2], km_cfg.tol, format_func=lambda v: f"{v:g}")
         seed = c5.number_input("Seed", 0, 9999, km_cfg.seed)
-        n_init = c6.number_input("Restarts (keep lowest SSE)", 1, 10, km_cfg.n_init)
+        n_init = c6.number_input("Restarts (keep lowest SSE)", 1, 30, km_cfg.n_init)
         if st.form_submit_button("Run K-Means", type="primary"):
             state.set_cfg("km", KMConfig(int(k), init, int(max_iter), float(tol), int(seed), int(n_init)))
             st.rerun()

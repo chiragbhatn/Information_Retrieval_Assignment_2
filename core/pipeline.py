@@ -41,7 +41,7 @@ class KMConfig:
     max_iter: int = 100
     tol: float = 1e-4
     seed: int = 42
-    n_init: int = 3
+    n_init: int = 10
 
 
 # ---------------------------------------------------------------- features

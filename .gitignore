@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.idea/
+.ipynb_checkpoints/
+nltk_data/
+.streamlit/secrets.toml
+.claude/
+*.zip
+IR_Text_Mining_Assignment2.docx

@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 import pandas as pd  # noqa: E402
 
 from core import experiments as ex  # noqa: E402
+from core import preprocessing as pp  # noqa: E402
 from core.data_loader import corpus_stats, load_bundled  # noqa: E402
 from core.pipeline import (DedupConfig, KMConfig, NBConfig, build_features, config_snapshot,  # noqa: E402
                            run_classification, run_clustering)
@@ -57,6 +58,7 @@ def main() -> None:
         "tfidf": fs.model.summary(), "naive_bayes": {k: float(v) for k, v in cr.scores.items()},
         "kmeans": {"purity": kr.purity, "rand_index": kr.rand["rand_index"], "sse": kr.km.sse,
                    "iterations": kr.km.n_iter, "stop_reason": kr.km.stop_reason, "cluster_to_label": kr.mapping},
+        "lemmatizer_backend": pp.LEMMATIZER_BACKEND if prep.normalizer == "lemmatize" else "n/a",
         "configs": config_snapshot(preprocess=prep, tfidf=tfidf_cfg, dedup=dedup, naive_bayes=nb_cfg, kmeans=km_cfg),
     }
     (out / "baseline.json").write_text(json.dumps(baseline, indent=2, default=str))
@@ -72,6 +74,8 @@ def main() -> None:
     save("exp4_init_comparison", ex.init_comparison(fs))
     save("exp5_recommender_eval", ex.recommender_eval(fs, kr.km.labels))
     save("exp6_naive_bayes_variants", ex.nb_variants(fs, nb_cfg))
+    print("\nRunning near-duplicate threshold sweep...")
+    save("exp7_near_dup_threshold", ex.near_duplicate_sweep(corpus, prep, tfidf_cfg, nb_cfg, km_cfg, progress=log))
     print(f"\nAll experiments finished in {time.perf_counter() - t_all:.1f}s -> {out}")
 
 

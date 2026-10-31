@@ -22,7 +22,7 @@ class PreprocessConfig:
     remove_stopwords: bool = True
     news_stopwords: bool = False
     custom_stopwords: tuple[str, ...] = ()
-    normalizer: str = "lemmatize"  # "none" | "stem" | "lemmatize"
+    normalizer: str = "stem"  # "none" | "stem" | "lemmatize"
     min_token_len: int = 2
     ngram_max: int = 1  # 1 = unigrams, 2 = uni+bigrams, 3 = up to trigrams
 

@@ -53,7 +53,7 @@ Then install the packages:
 pip install -r requirements.txt
 ```
 
-**NLTK data.** The WordNet lemmatizer data downloads automatically the first time it is needed, which needs internet. If the download fails (offline), the app falls back to a small rule-based lemmatizer and keeps working. The Porter stemmer and the stop-word lists need no download.
+**NLTK data.** Porter stemming is the default normalizer and needs no download. WordNet lemmatization is available in the UI; its data downloads the first time it is used, which needs internet. If the download fails, the app falls back to a small rule-based lemmatizer and `results/baseline.json` records the active backend.
 
 ---
 
@@ -119,16 +119,11 @@ Note: `--sample` also writes to `results/` and overwrites the full-corpus tables
 | `exp4_init_comparison.csv` | Random vs k-means++ initialisation over 10 seeds (k = 5) |
 | `exp5_recommender_eval.csv` | Content-based vs hybrid (cluster weight 0.2 and 0.5) recommender: Precision@1/3/5/10 and how often a duplicate appears in the Top-K |
 | `exp6_naive_bayes_variants.csv` | Naive Bayes on counts vs TF-IDF features, smoothing alpha 0.01 to 2.0 |
+| `exp7_near_dup_threshold.csv` | Near-duplicate removal at cosine thresholds 0.80, 0.85, 0.90, 0.95 (documents kept, near pairs left, NB and K-Means scores, Precision@5) |
 | `experiments_log.txt`, `tests_output.txt` | Console output saved by `scripts/lab_run.sh` |
 | `lab_environment.txt` | Lab machine details and run time (created by `scripts/lab_run.sh`) |
 
-**Expected headline numbers** (full corpus, default settings; 138 exact duplicates removed, so 2,086 documents are used):
-
-| Task | Result |
-|---|---|
-| Naive Bayes (1,669 train / 417 test) | Accuracy 0.971, macro F1 0.970 |
-| K-Means, k = 5 | Purity 0.948, Rand Index 0.960 |
-| Recommender, Precision@5 | 0.930 content-based, 0.961 hybrid (cluster weight 0.2) |
+Headline numbers (full corpus, default settings) are produced by `python scripts/run_experiments.py` and written to `results/baseline.json`.
 
 **Run the tests** (13 tests, including the textbook examples from Manning et al. for Naive Bayes, Purity and Rand Index):
 

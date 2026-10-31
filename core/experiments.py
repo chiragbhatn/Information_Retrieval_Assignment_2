@@ -139,3 +139,23 @@ def nb_variants(fs: FeatureSet, base: NBConfig = NBConfig(), alphas=(0.01, 0.1, 
             rows.append({"features": feats, "alpha": a, "accuracy": cr.scores["accuracy"],
                          "macro_f1": cr.scores["macro_f1"]})
     return pd.DataFrame(rows)
+
+
+def near_duplicate_sweep(corpus: Corpus, prep: PreprocessConfig = PreprocessConfig(),
+                         tfidf_cfg: TfidfConfig = TfidfConfig(), nb_cfg: NBConfig = NBConfig(),
+                         km_cfg: KMConfig = KMConfig(), rec_k: int = 5,
+                         thresholds=(0.80, 0.85, 0.90, 0.95), progress=None) -> pd.DataFrame:
+    """Sweep the cosine threshold for near-duplicate removal."""
+    rows = []
+    for n, thr in enumerate(thresholds):
+        if progress:
+            progress(n / len(thresholds), f"threshold = {thr}")
+        dedup = DedupConfig(remove_exact=True, remove_near=True, near_threshold=thr)
+        fs = build_features(corpus, prep, tfidf_cfg, dedup)
+        row = {"threshold": thr, "documents": len(fs),
+               "removed_exact": len(fs.removed["exact"]),
+               "removed_near": len(fs.removed["near"]),
+               "near_dup_pairs_left": len(fs.near_pairs)}
+        row.update(_row_metrics(fs, nb_cfg, km_cfg, rec_k))
+        rows.append(row)
+    return pd.DataFrame(rows)

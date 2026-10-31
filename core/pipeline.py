@@ -169,18 +169,35 @@ def _tfidf_rows(X: np.ndarray, rows: list[int]) -> list[dict[int, float]]:
     return out
 
 
+def _rows_from_tokens(train_model: TfidfModel, token_lists: list[list[str]]) -> list[dict[int, int]]:
+    out = []
+    for tokens in token_lists:
+        counts: dict[int, int] = {}
+        for t in tokens:
+            col = train_model.term_to_col.get(t)
+            if col is not None:
+                counts[col] = counts.get(col, 0) + 1
+        out.append(counts)
+    return out
+
+
 def run_classification(fs: FeatureSet, cfg: NBConfig) -> ClassificationResult:
     t0 = time.perf_counter()
     groups = fs.dup_group if cfg.group_duplicates else None
     train, test = stratified_split(fs.labels, cfg.test_size, cfg.seed, groups)
+    # Fit TF-IDF on training rows only; transform test rows through that vocabulary.
+    train_tokens = [fs.tokens[i] for i in train]
+    test_tokens = [fs.tokens[i] for i in test]
+    train_model = TfidfModel(fs.tfidf_cfg).fit(train_tokens)
     if cfg.features == "tfidf":
-        feats_train, feats_test = _tfidf_rows(fs.X, train), _tfidf_rows(fs.X, test)
+        feats_train = _tfidf_rows(train_model.matrix, list(range(len(train))))
+        feats_test = _tfidf_rows(train_model.transform(test_tokens), list(range(len(test))))
     else:
-        feats_train = [fs.model.doc_counts[i] for i in train]
-        feats_test = [fs.model.doc_counts[i] for i in test]
+        feats_train = [train_model.doc_counts[i] for i in range(len(train))]
+        feats_test = _rows_from_tokens(train_model, test_tokens)
     y_train = [fs.labels[i] for i in train]
     y_true = [fs.labels[i] for i in test]
-    nb = MultinomialNaiveBayes(cfg.alpha).fit(feats_train, y_train, len(fs.model.vocab))
+    nb = MultinomialNaiveBayes(cfg.alpha).fit(feats_train, y_train, len(train_model.vocab))
     proba = nb.predict_proba(feats_test)
     y_pred = [nb.classes_[i] for i in proba.argmax(axis=1)]
     classes = sorted(set(fs.labels))
@@ -189,7 +206,7 @@ def run_classification(fs: FeatureSet, cfg: NBConfig) -> ClassificationResult:
     return ClassificationResult(
         cfg, train, test, y_true, y_pred, proba, nb.classes_,
         classification_report(y_true, y_pred, classes), confusion_matrix(y_true, y_pred, classes),
-        summary_scores(y_true, y_pred, classes), nb, leakage, nb.top_terms(fs.model.vocab, 12),
+        summary_scores(y_true, y_pred, classes), nb, leakage, nb.top_terms(train_model.vocab, 12),
         time.perf_counter() - t0)
 
 
